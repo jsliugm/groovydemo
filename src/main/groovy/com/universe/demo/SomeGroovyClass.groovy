@@ -25,8 +25,9 @@ class SomeGroovyClass{
 //        println someGroovyClass.name
 
         Person p = new Person()
-        println p.name
+     //   println p.name
 //        Student student = new Student()
 //        println student.name
+        println p.getName()
     }
 }

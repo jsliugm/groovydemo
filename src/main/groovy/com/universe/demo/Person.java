@@ -3,9 +3,11 @@ package com.universe.demo;
 public class Person {
     private String name;
     private int age;
-static {
-    System.out.println("xxx");
-}
+
+    static {
+        System.out.println("xxx");
+    }
+
     public String getName() {
         return name;
     }

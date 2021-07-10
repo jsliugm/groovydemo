@@ -25,36 +25,42 @@ public class GroovyTest {
     public static void compileClosureScript(String scriptText,String name){
         GroovyShell groovyShell = new GroovyShell();
         Closure closure = (Closure<?>) groovyShell.evaluate(scriptText);
+        System.out.println("closure name = "+closure.getClass().getName());
         com.universe.demo.Test.addMethod(Script.class, name, closure);
     }
 
     @Test
     public void test() {
-        String scriptText = "def xx = {if(it!=null&&it!=\"\"){println delegate;return 1111}else{return null;}}";
+        String scriptText = "def xx = {if(it!=null&&it!=\"\"){ println '**length begin'; println owner;println this;println delegate;println 'length end**';it.length() }else{return null;}}";
         compileClosureScript(scriptText,"长度");
 
         Map<String, Object> params = new HashMap<>();
         params.put("b", "中国人民解放军");
         params.put("c", 2);
-        System.out.println(GroovyExecutor.invoke(" def cal(){ return {长度(b)}()};\r\ncal();", params));
+        String runScript =" def cal(){ return {println 长度(b);println this.respondsTo('长度');println owner;println delegate;}()};\r\ncal();";
+        GroovyExecutor.invoke(runScript, params);
 
-        scriptText = "def xx = {if(it!=null&&it!=\"\"){println delegate;return 22222}else{return null;}}";
-        compileClosureScript(scriptText,"长度");
-        System.out.println(GroovyExecutor.invoke(" def cal(){  return {长度(b)}()};\r\ncal();", params));
+        runScript =" def cal(){ return {println 长度(b) ;println this.respondsTo('长度');println owner;println delegate;}()};\r\ncal();";
+        //scriptText = "def xx = {if(it!=null&&it!=\"\"){return 22222}else{return null;}}";
+        //compileClosureScript(scriptText,"长度");
+
+        GroovyExecutor.invoke(runScript, params);
 
     }
 
     @Test
     public void test2() {
-        String scriptText = "def xx={it}";
-        GroovyShell groovyShell = new GroovyShell();
-        Closure closure = (Closure<?>) groovyShell.evaluate(scriptText);
-        com.universe.demo.Test.addMethod(MyScript.class, "长度", closure);
+        String scriptText = "def xx= {println 'a'}";
+        compileClosureScript( scriptText,"长度");
         //Map<String, Object> params = new HashMap<>();
         //GroovyExecutor.invoke(" def cal(){ test()};\r\ncal();", params);
         Map<String, Object> params = new HashMap<>();
         params.put("b", "中国人民解放军");
         params.put("c", 2);
+        GroovyExecutor.invoke("def cal(){ 长度()};\r\ncal();", params);
+
+        scriptText = "def xx= {println 'b'}";
+        compileClosureScript( scriptText,"长度");
         GroovyExecutor.invoke("def cal(){ 长度()};\r\ncal();", params);
     }
 }

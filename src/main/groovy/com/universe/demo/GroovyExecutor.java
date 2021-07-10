@@ -3,6 +3,7 @@ package com.universe.demo;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
+import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.util.ManagedConcurrentValueMap;
 import org.codehaus.groovy.util.ReferenceBundle;
@@ -79,11 +80,11 @@ public class GroovyExecutor {
                 // Double Check
                 script = zlassMaps.get(key);
                 if (script == null) {
-                    GroovyClassLoader classLoader = new GroovyClassLoader();
-//                    CompilerConfiguration config = new CompilerConfiguration();
-//                    config.setSourceEncoding("UTF-8");
-//                    config.setScriptBaseClass("com.universe.demo.MyScript");
-//                    GroovyClassLoader classLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(),config);
+                   // GroovyClassLoader classLoader = new GroovyClassLoader();
+                    CompilerConfiguration config = new CompilerConfiguration();
+                    config.setSourceEncoding("UTF-8");
+                    config.setScriptBaseClass("com.universe.demo.MyScript");
+                    GroovyClassLoader classLoader = new GroovyClassLoader(Thread.currentThread().getContextClassLoader(),config);
                     script = classLoader.parseClass(scriptText);
                     zlassMaps.put(key, script);
                 }

@@ -1,11 +1,13 @@
 package com.universe.demo;
 
+import groovy.lang.Closure;
+
 public class Person {
     private String name;
     private int age;
 
     static {
-        System.out.println("xxx");
+        System.out.println("Person静态方法块");
     }
 
     public String getName() {
@@ -22,5 +24,11 @@ public class Person {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public Person test(Closure closure){
+        closure = closure.rehydrate(this,this,this);
+        closure.run();
+        return this;
     }
 }

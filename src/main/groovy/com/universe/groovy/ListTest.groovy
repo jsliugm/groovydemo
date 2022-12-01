@@ -1,10 +1,11 @@
 package com.universe.groovy
 
-class ListTest{
+class ListTest {
     static void main(String[] args) {
-        List list = [1,2,3]
-        list.inject {
+        def l = [1, 2, 3, 4]
 
-        }
+        def x = l.findAll { it == 5 }
+
+        println x.size()
     }
 }

@@ -19,4 +19,8 @@ class StringTest {
             println m.group(1)
         }
     }
+    @Test
+    void test23(){
+        println null > 1
+    }
 }

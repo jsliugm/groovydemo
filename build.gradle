@@ -4,6 +4,7 @@ group 'com.universe'
 version '1.0-SNAPSHOT'
 sourceCompatibility = 1.8
 repositories {
+    maven {url 'https://maven.aliyun.com/repository/public'}
     mavenCentral()
 }
 sourceSets{

@@ -23,4 +23,16 @@ class StringTest {
     void test23(){
         println null > 1
     }
+    @Test
+    void test5(){
+        if("") println "xxxx"
+        "".asBoolean()
+    }
+    @Test
+    void test6(){
+        def f = new File("D:/1.txt")
+        if(f.exists()) {
+            println new Date(f.lastModified())
+        }
+    }
 }

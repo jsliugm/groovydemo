@@ -10,7 +10,7 @@ def c1 = {
 c1()
 //println c2
 println "test c2"
-Person person = new Person()
+com.universe.demo.model.Student person = new com.universe.demo.model.Student()
 def c2 = c1.clone()
 c2.owner = person
 c2.delegate = person

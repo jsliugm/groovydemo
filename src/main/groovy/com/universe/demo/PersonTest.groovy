@@ -7,7 +7,7 @@ def c = {
 
 
 
-Person p = new Person();
+com.universe.demo.model.Student p = new com.universe.demo.model.Student();
 p.test(c)
 
 println p.age

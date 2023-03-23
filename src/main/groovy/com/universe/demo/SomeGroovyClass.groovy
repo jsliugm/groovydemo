@@ -24,7 +24,7 @@ class SomeGroovyClass{
 //        println(someGroovyClass.someMethod())
 //        println someGroovyClass.name
 
-        Person p = new Person()
+        com.universe.demo.model.Student p = new com.universe.demo.model.Student()
      //   println p.name
 //        Student student = new Student()
 //        println student.name

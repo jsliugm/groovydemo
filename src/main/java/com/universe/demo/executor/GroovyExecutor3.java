@@ -3,73 +3,29 @@ package com.universe.demo.executor;
 import groovy.lang.Binding;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;
-import org.codehaus.groovy.jsr223.GroovyScriptEngineImpl;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.util.ManagedConcurrentValueMap;
 import org.codehaus.groovy.util.ReferenceBundle;
 
-import javax.script.*;
 import java.security.MessageDigest;
 import java.util.Map;
 
-public class GroovyExecutor {
-    private ScriptEngine scriptEngine;
-    private static GroovyExecutor groovyExecutor = new GroovyExecutor();
+/**
+ * 实现脚本对象池
+ */
+public class GroovyExecutor3 {
+    private final static ManagedConcurrentValueMap<String, Class<Script>> zlassMaps = new ManagedConcurrentValueMap<>(ReferenceBundle.getSoftBundle());
+    private final static GroovyClassLoader classLoader = new GroovyClassLoader();
+    private static GroovyExecutor3 groovyExecutor = new GroovyExecutor3();
+    private final static Binding binding = new Binding();
 
-    public static GroovyExecutor getInstance() {
+    public static GroovyExecutor3 getInstance() {
         return groovyExecutor;
     }
 
-    private GroovyExecutor() {
+    private GroovyExecutor3() {
     }
 
-    private ScriptEngine getScriptEngine() {
-        if (this.scriptEngine == null) {
-            ScriptEngineManager factory = new ScriptEngineManager();
-            this.scriptEngine = factory.getEngineByName("groovy");
-        }
-        return this.scriptEngine;
-    }
-
-    public Object execute(String script, String objectTypeName, Object param) {
-        ScriptEngine scriptEngine = this.getScriptEngine();
-        Compilable compilable = (Compilable) scriptEngine;
-        try {
-            CompiledScript compiledScript = compilable.compile(script);
-            Bindings bindings = scriptEngine.createBindings();
-            bindings.put(objectTypeName, param);
-            return compiledScript.eval(bindings);
-        } catch (ScriptException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public CompiledScript compiledScript(String script) {
-        ScriptEngine scriptEngine = this.getScriptEngine();
-        Compilable compilable = (Compilable) scriptEngine;
-        try {
-            return compilable.compile(script);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    public Object execute(String script, Map<String, Object> param) {
-        ScriptEngine scriptEngine = this.getScriptEngine();
-        Compilable compilable = (Compilable) scriptEngine;
-        try {
-            CompiledScript compiledScript = compilable.compile(script);
-            Bindings bindings = new SimpleBindings(param);
-            return compiledScript.eval(bindings);
-        } catch (ScriptException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private final static ManagedConcurrentValueMap<String, Class<Script>> zlassMaps = new ManagedConcurrentValueMap<>(ReferenceBundle.getSoftBundle());
-    private final static GroovyClassLoader classLoader = new GroovyClassLoader();
     public Class<Script> compile(String scriptText) {
         String key = fingerKey(scriptText);
         Class<Script> script = zlassMaps.get(key);
@@ -78,24 +34,24 @@ public class GroovyExecutor {
                 // Double Check
                 script = zlassMaps.get(key);
                 if (script == null) {
-                   // GroovyClassLoader classLoader = new GroovyClassLoader();
+                    // GroovyClassLoader classLoader = new GroovyClassLoader();
                     script = classLoader.parseClass(scriptText);
                     zlassMaps.put(key, script);
                     return script;
                 }
             }
         }
-        return null;
+        return script;
     }
 
-    public static Object execute(Class<Script> scriptClass, String paramName, Object param) {
+    public  Object execute(Class<Script> scriptClass, String paramName, Object param) {
         Binding binding = new Binding();
         binding.setVariable(paramName, param);
         Script scriptObj = InvokerHelper.createScript(scriptClass, binding);
         return scriptObj.run();
     }
 
-    public static Object invoke(String scriptText, Map<String, Object> params) {
+    public  Object invoke(String scriptText, Map<String, Object> params) {
         String key = fingerKey(scriptText);
         Class<Script> script = zlassMaps.get(key);
         if (script == null) {
@@ -121,6 +77,15 @@ public class GroovyExecutor {
         return scriptObj.run();
     }
 
+
+    public Script getScript(String script) {
+        Class<Script> scriptClass = compile(script);
+        if (scriptClass == null) {
+            return null;
+        }
+        return InvokerHelper.createScript(scriptClass, binding);
+    }
+
     // 为脚本代码生成md5指纹
     public static String fingerKey(String scriptText) {
         try {
@@ -139,8 +104,4 @@ public class GroovyExecutor {
         }
     }
 
-    public void clearCache() {
-        GroovyScriptEngineImpl groovyScriptEngine = (GroovyScriptEngineImpl) scriptEngine;
-        groovyScriptEngine.getClassLoader().clearCache();
-    }
 }

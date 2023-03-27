@@ -1,15 +1,38 @@
 package com.universe.groovy
 
+import com.google.common.cache.Cache
 import com.universe.demo.Person
 import com.universe.demo.executor.GroovyExecutor3
+import com.universe.demo.executor.ScriptCache
 import com.universe.demo.executor.ScriptPool
 
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ *
+ *
+ * -XX:+UnlockCommercialFeatures
+ -XX:+FlightRecorder
+ -XX:StartFlightRecording=duration=60s,filename=myrecordingTool.jfr
+ *
+ */
 class ScriptPoolTest {
+
     static void main(String[] args) {
-       //testNormal()
-       testPool()
+        def nThread = 10
+        def maxExec = 5000
+        int ruleCount = 5000
+
+        testCache(nThread, maxExec, ruleCount)
+        testNormal(nThread, maxExec, ruleCount)
+
+
+        println "=============================="
+        maxExec = 100000
+        testNormal(nThread, maxExec, ruleCount)
+        testCache(nThread, maxExec, ruleCount)
+
+
     }
     /**
      * 生成100个groovy脚本
@@ -94,16 +117,11 @@ class ScriptPoolTest {
 
     }
 
-    private static void testNormal() {
-        def nThread = 10
-        def maxExec = 100000
-
+    private static void testNormal(nThread, maxExec, ruleCount) {
 
         def counter2 = []
 
-
         nThread.times {
-
             counter2 << 0
         }
 
@@ -111,7 +129,6 @@ class ScriptPoolTest {
         AtomicInteger overFlag2 = new AtomicInteger(0)
 
 
-        int ruleCount = 5000
         String scriptText = "person.mySchoolName + "
         def scriptList = []
         ruleCount.times {
@@ -132,7 +149,7 @@ class ScriptPoolTest {
                 maxExec.times {
                     def st = scriptList[random.nextInt(ruleCount)]
                     //println(st)
-                    println GroovyExecutor3.getInstance().invoke(st, param)
+                    GroovyExecutor3.getInstance().invoke(st, param)
                 }
                 //println " 普通 耗时 ： ${(System.currentTimeMillis() - begin)}"
                 counter2.set(out, counter2.get(out) + System.currentTimeMillis() - begin)
@@ -147,6 +164,54 @@ class ScriptPoolTest {
 
         println " normal total ${counter2.sum()}"
 
+    }
+
+    private static void testCache(nThread, maxExec, ruleCount) {
+        def counter1 = []
+        //   def counter2 = []
+
+
+        nThread.times {
+            counter1 << 0
+            //counter2 << 0
+        }
+
+        AtomicInteger overFlag1 = new AtomicInteger(0)
+        // AtomicInteger overFlag2 = new AtomicInteger(0)
+
+
+        String scriptText = "person.mySchoolName + "
+        def scriptList = []
+        ruleCount.times {
+            scriptList << scriptText + it
+        }
+        //编译ScriptPool
+        //def scriptPools = []
+
+        Person p = new Person()
+        p.setMySchoolName("家里蹲")
+        Map<String, Object> param = new HashMap<>()
+        param.put("person", p)
+
+//pool
+        nThread.times { out ->
+            Thread.start {
+                Random random = new Random()
+                long begin = System.currentTimeMillis()
+                maxExec.times {
+                    Script script = ScriptCache.get(scriptList[random.nextInt(ruleCount)])
+                    script.setBinding(new Binding(param))
+                    script.run()
+                }
+                //println " pool 耗时 ： ${(System.currentTimeMillis() - begin)}"
+                counter1.set(out, counter1.get(out) + System.currentTimeMillis() - begin)
+                overFlag1.getAndIncrement()
+            }
+        }
+        while (overFlag1.get() < 5) {
+            sleep(100)
+        }
+        println " pool total ${counter1.sum()}"
     }
 
     private static void testPool() {
@@ -192,7 +257,7 @@ class ScriptPoolTest {
                     Script script = scriptPool.borrowObject()
                     try {
                         script.setBinding(new Binding(param))
-                         script.run()
+                        script.run()
                     } finally {
                         scriptPool.returnObject(script)
                     }
@@ -207,6 +272,7 @@ class ScriptPoolTest {
         }
         println " pool total ${counter1.sum()}"
     }
+
 
     private static test1() {
         def maxExec = 100000
